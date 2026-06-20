@@ -1,0 +1,9 @@
+# Musignal/JDSound公式サイトの著作物（再配布しない。fetch_official_dashboard.shで取得する）
+dashboard.html
+dashboard.js
+dashboard.css
+assets/
+
+# Python
+__pycache__/
+*.pyc
