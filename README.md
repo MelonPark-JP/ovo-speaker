@@ -18,6 +18,13 @@ pip install pre-commit
 pre-commit install
 ```
 
+任意で、AIによるコードレビューCLI [open-code-review](https://github.com/alibaba/open-code-review)（`ocr`コマンド）も手動で使えます。pre-commitには組み込んでいません（コミットごとにLLM呼び出しが発生するコストを避けるため）。
+
+```
+ocr config provider   # 初回のみ、対話的にLLMプロバイダ/APIキーを設定
+ocr review            # 作業中の変更をレビュー
+```
+
 ## コマンドラインツール（ovo_cli.py）の使い方
 
 ターミナルから対話メニューで使う場合:
