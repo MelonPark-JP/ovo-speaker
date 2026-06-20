@@ -14,8 +14,27 @@ import sys
 WAIT = 0.4
 
 
+class OvoCliError(Exception):
+    """amidiの実行に失敗した場合に投げる、ユーザー向けメッセージ付きの例外。"""
+
+
+def run_amidi(args, timeout):
+    try:
+        proc = subprocess.run(
+            ["amidi", *args], capture_output=True, text=True, timeout=timeout,
+        )
+    except FileNotFoundError:
+        raise OvoCliError(
+            "amidiコマンドが見つかりません。alsa-utilsをインストールしてください。"
+        ) from None
+    if proc.returncode != 0:
+        detail = proc.stderr.strip() or "(詳細不明)"
+        raise OvoCliError(f"amidiがエラーを返しました: {detail}")
+    return proc.stdout
+
+
 def find_port():
-    out = subprocess.run(["amidi", "-l"], capture_output=True, text=True).stdout
+    out = run_amidi(["-l"], timeout=5)
     for line in out.splitlines():
         if "OVO" in line:
             m = re.search(r"(hw:\d+,\d+,\d+)", line)
@@ -26,11 +45,8 @@ def find_port():
 
 def raw_send(port, hex_bytes, wait=WAIT):
     """hex_bytesを送信し、wait秒間の応答を3バイトずつのメッセージのリストとして返す。"""
-    proc = subprocess.run(
-        ["amidi", "-p", port, "-S", hex_bytes, "-d", "-t", str(wait)],
-        capture_output=True, text=True, timeout=wait + 3,
-    )
-    tokens = proc.stdout.split()
+    out = run_amidi(["-p", port, "-S", hex_bytes, "-d", "-t", str(wait)], timeout=wait + 3)
+    tokens = out.split()
     values = [int(t, 16) for t in tokens]
     return [values[i:i + 3] for i in range(0, len(values) - 2, 3)]
 
@@ -282,6 +298,8 @@ def run_menu():
                 print("無効な選択です。")
         except subprocess.TimeoutExpired:
             print("amidiの応答がタイムアウトしました。USB接続を確認してください。")
+        except OvoCliError as e:
+            print(str(e))
 
 
 def onoff(s):
@@ -290,6 +308,19 @@ def onoff(s):
     if s.lower() in ("off", "0"):
         return False
     raise argparse.ArgumentTypeError("on か off を指定してください")
+
+
+def int_range(lo, hi):
+    def parse(s):
+        try:
+            v = int(s)
+        except ValueError:
+            raise argparse.ArgumentTypeError(f"{s!r} は整数で指定してください") from None
+        if not (lo <= v <= hi):
+            raise argparse.ArgumentTypeError(f"{v} は範囲外です（{lo}-{hi}で指定してください）")
+        return v
+
+    return parse
 
 
 def build_parser():
@@ -306,22 +337,22 @@ def build_parser():
     s.add_argument("value", type=onoff)
 
     s = sub.add_parser("local-volume-level", help="LOCAL VOLUMEレベル (0-200)")
-    s.add_argument("value", type=int)
+    s.add_argument("value", type=int_range(0, 200))
 
     s = sub.add_parser("analog-volume-level", help="ANALOG VOLUMEレベル (0-126)")
-    s.add_argument("value", type=int)
+    s.add_argument("value", type=int_range(0, 126))
 
     s = sub.add_parser("auto-gain", help="AUTO GAINのON/OFF")
     s.add_argument("value", type=onoff)
 
     s = sub.add_parser("bass-boost", help="BASS BOOST (0-3)")
-    s.add_argument("value", type=int)
+    s.add_argument("value", type=int_range(0, 3))
 
     s = sub.add_parser("high-boost", help="HIGH BOOST (0-3)")
-    s.add_argument("value", type=int)
+    s.add_argument("value", type=int_range(0, 3))
 
     s = sub.add_parser("lr-setting", help="L/R SETTING (0:通常 1:反転 2:左のみ 3:右のみ)")
-    s.add_argument("value", type=int)
+    s.add_argument("value", type=int_range(0, 3))
 
     s = sub.add_parser("low-power", help="LOW POWERのON/OFF")
     s.add_argument("value", type=onoff)
@@ -330,10 +361,10 @@ def build_parser():
     s.add_argument("value", type=onoff)
 
     s = sub.add_parser("led-brightness", help="LED輝度 (0-8)")
-    s.add_argument("value", type=int)
+    s.add_argument("value", type=int_range(0, 8))
 
     s = sub.add_parser("led-pattern", help="LEDパターン (0-3)")
-    s.add_argument("value", type=int)
+    s.add_argument("value", type=int_range(0, 3))
 
     s = sub.add_parser("peq", help="イコライザ(PEQ)のON/OFF")
     s.add_argument("value", type=onoff)
@@ -398,3 +429,6 @@ if __name__ == "__main__":
         print("\n中断しました。")
     except subprocess.TimeoutExpired:
         print("amidiの応答がタイムアウトしました。USB接続を確認してください。")
+    except OvoCliError as e:
+        print(str(e))
+        sys.exit(1)
