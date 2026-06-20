@@ -9,6 +9,15 @@
 
 Firefoxは Web MIDI API に対応していないため `dashboard.html` は動作しません。その場合は `ovo_cli.py` を使ってください。
 
+## 開発者向け: pre-commitフック
+
+ベンダーファイルや秘密情報の誤コミットを防ぐため`.pre-commit-config.yaml`を用意しています。cloneしたら一度だけ以下を実行してください。
+
+```
+pip install pre-commit
+pre-commit install
+```
+
 ## コマンドラインツール（ovo_cli.py）の使い方
 
 ターミナルから対話メニューで使う場合:
