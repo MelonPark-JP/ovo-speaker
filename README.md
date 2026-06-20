@@ -99,3 +99,11 @@ python3 -m http.server 8000
 ## 注意点
 
 - `fetch_official_dashboard.sh`はMusignal公式サイトの現時点（2026年6月確認）のページ構造に合わせて作っています。同社がページ内容を更新した場合、スクリプトの調整(文字列置換)が効かなくなる可能性があります。
+
+## ライセンス・免責事項
+
+このリポジトリのコード（`ovo_cli.py`、`fetch_official_dashboard.sh`、`scripts/`、本READMEを含む）は [MIT License](LICENSE) です。
+
+- **OVO、JDSound、Musignalの名称・商標・著作物はこのライセンスの対象外**です。各権利者に帰属します。
+- `dashboard.html`/`dashboard.js`/`dashboard.css`/`assets/`はMusignal公式サイトの著作物であり、このリポジトリには含まれていません（`fetch_official_dashboard.sh`実行時に利用者自身のマシンへ取得されます）。
+- 本プロジェクトはJDSound社・Musignal株式会社と提携・公認関係にない、有志による非公式の相互運用ツールです。OVOの通信プロトコルは相互運用性確保のための独自解析・独自実装によるものです。
