@@ -1,0 +1,12 @@
+[Unit]
+Description=Periodically ensure the OVO PulseAudio sink is present and default
+
+[Timer]
+# First check shortly after boot, then keep checking so a USB flap that drops
+# the sink mid-run is repaired within ~30s without anyone noticing.
+OnBootSec=20
+OnUnitActiveSec=30
+AccuracySec=5
+
+[Install]
+WantedBy=timers.target

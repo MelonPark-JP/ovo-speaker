@@ -1,0 +1,13 @@
+[Unit]
+Description=Ensure the OVO USB DAC is the PulseAudio sink (self-heal)
+After=pulseaudio-system.service
+# Don't bother if the system PA daemon isn't running.
+Requisite=pulseaudio-system.service
+
+[Service]
+Type=oneshot
+User=pulse
+Group=pulse
+# Let a freshly plugged OVO finish (re)enumerating before we touch it.
+ExecStartPre=/bin/sleep 3
+ExecStart=/usr/local/bin/ovo-pa-ensure.sh

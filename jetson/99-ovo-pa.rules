@@ -1,0 +1,4 @@
+# Fast path: when the OVO USB DAC (JD SOUND, 18fd:0013) appears, kick the
+# self-heal service so the sink is restored immediately instead of waiting for
+# the next timer tick. The service's ExecStartPre sleep absorbs plug-in flap.
+ACTION=="add", SUBSYSTEM=="sound", KERNEL=="card*", ATTRS{idVendor}=="18fd", ATTRS{idProduct}=="0013", TAG+="systemd", ENV{SYSTEMD_WANTS}+="ovo-pa-ensure.service"
